@@ -156,7 +156,14 @@ module Devise
 
         unless ::Devise.ldap_ad_group_check
           group_checking_ldap.search(:base => group_name, :scope => Net::LDAP::SearchScope_BaseObject) do |entry|
-            if entry[group_attribute].include? dn
+            #
+            # hack
+            # qui entry[group_attribute] è un array con elenco utenti appartenenti al gruppo
+            #   es.  entry[group_attribute]: ["sc", "pm", "az", "mb", "nb", "sb", "at", "hb", "dr", "francesco"]
+            # ma dn è cn=francesco,ou=users,dc=bwlocal,dc=it, ecco che noi vogliamo cercare solo "francesco", quindi usiamo "hacked_dn" 
+            hacked_dn = dn.split(',')[0].split('=')[1]
+            # if entry[group_attribute].include? dn
+            if entry[group_attribute].include? hacked_dn
               in_group = true
               DeviseLdapAuthenticatable::Logger.send("User #{dn} IS included in group: #{group_name}")
             end
